@@ -1,0 +1,113 @@
+#Author:        harman Nan
+#CreateDate:    2013-02-20
+
+[Packages for Linux:]
+================================================
+nginx-0.7.61-1.x86_64.rpm
+python-27
+Django-1.2.5.tar.gz
+flup-1.0.2.tar.gz
+celery-3.0.11.tar.gz
+django-celery-3.0.11.tar.gz
+django-kombu-0.9.4.tar.gz
+STAF3412-linux-amd64.tar.gz
+MySQL-python-1.2.3.tar.gz
+=================================================
+
+[Installation:]
+1. Install python, version is v2.7
+   wget http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz
+   tar xzvf Python-2.7.3.tgz
+   cd Python-2.7.3
+   ./configure
+   make && make install (假如make失败，执行make clean 再重新make)
+   /usr/local/bin/python2.7 -V (查看python是否已经安装完)
+   mv /usr/bin/python  /usr/bin/python.bak
+   ln -s //usr/local/bin/python2.7 /usr/bin/python
+   python -V (python版本应为2.7.3)
+   vi /usr/bin/yum (将文本编辑显示的#/usr/bin/python修改为#/usr/bin/python2.4，保存修改即可)
+   
+   通常目录为： /usr/local/lib/python2.7/
+
+2. Install Mysql
+   安装mysql,参照其他组件对MySQL版本的支持
+   sudo yum install mysql-server mysql mysql-devel -b 5.1.48-1.rhel5
+  
+   CREATE DATABASE `qaplatform` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci
+
+3. Install nginx, version is v1.2.4
+   sudo rpm -ivh nginx-0.7.61-1.x86_64.rpm
+   rpm -ql nginx  ,查看nginx的相关目录
+   sudo vi /etc/nginx/nginx.conf ,修改nginx的配置
+   sudo /etc/init.d/nginx start / restart / stop 
+
+4. Install Django, version is v1.2.5
+   unzip *.zip / tar xzvf *.tar.gz 根据包的类型选择解压方式
+   cd uncompressed_directory 进入解压后的目录
+   sudo python setup.py build
+   sudo python setup.pu install
+
+5. Install flup, version is v1.0.2
+   unzip *.zip / tar xzvf *.tar.gz
+   cd uncompressed_directory 进入解压后的目录
+   sudo python setup.py build
+   sudo python setup.pu install
+   注：假如下载出错，更改目录中ez_setup.py中，DEFAULT_VERSION的值
+
+6. Install celery-3.0.11.tar.gz, django-celery-3.0.11.tar.gz, django-kombu-0.9.4.tar.gz
+   unzip *.zip / tar xzvf *.tar.gz
+   cd uncompressed_directory 进入解压后的目录
+   sudo python setup.py build
+   sudo python setup.pu install
+
+7. install STAF
+   tar xzvf STAF3412-linux-amd64.tar.gz
+   cd staf
+   sudo ./STAFInst  , follow the steps, staf_home=/usr/local/staf
+   cd /usr/local/staf/
+   sudo chmod 755 *
+   sudo ./startSTAFProc.sh
+   ps -ef |grep STAF
+   cp PySTAF.py Project directory
+   cd project directory
+   ln -s /usr/local/staf/lib/python27/PYSTAF.so .
+   ln -s /usr/local/staf/lib/IPv4/libSTAF.so .
+
+   cd /home/fashan.nhm
+   vi .bash_profile(针对当前用户)   or sudo vi /etc/profile (全局)
+	add info as below:
+	=========
+	PATH=/usr/local/staf/lib/python27:/usr/local/staf/bin:${PATH:-}
+	LD_LIBRARY_PATH=/usr/local/staf/lib/python25:${LD_LIBRARY_PATH:-}
+	CLASSPATH=/usr/local/staf/lib/python27:/usr/local/staf/lib/JSTAF.jar:/usr/local/staf/samples/demo/STAFDemo.jar:${CLASSPATH:-}
+	STAFCONVDIR=/usr/local/staf/codepage
+	export PATH LD_LIBRARY_PATH CLASSPATH STAFCONVDIR STAF_INSTANCE_NAME
+
+	PYTHONPATH=/usr/local/staf/lib/python27:${PYTHONPATH:-}
+	export PYTHONPATH
+
+	PYTHONCASEOK=${PYTHONCASEOK:-}
+	export PYTHONCASEOK
+	==========
+
+    sourse .bash_profile  / sourse /etc/profile 生效配置文件
+      
+
+===================================================
+[Run Django on linux]
+
+1. sudo /etc/init.d/nginx start
+2. sudo env LD_LIBRARY_PATH=$LD_LIBRARY_PATH nohup python /home/fashan.nhm/projects/QaPlatform/QaPlatForm/manage.py runfcgi method=prefork host=127.0.0.1 port=8051 &
+3. sudo env LD_LIBRARY_PATH=$LD_LIBRARY_PATH nohup python /home/fashan.nhm/projects/QaPlatform/QaPlatForm/manage.py celeryd -c 3 -v 2 -B -s celery -E -l INFO -f /home/fashan.nhm/celery.log --settings=settings --pythonpath=/home/fashan.nhm/projects/QaPlatform/ &  
+ 
+(-c表示并发的worker数，-B为beat定时任务需要开启，此处loglevel可更改为ERROR，INFO级别的日志比较多)
+Notice:sudo cannot use LD_LIBRARY_PATH automaticly
+
+[Kill Server:]
+===================================================
+1. sudo pkill -9 python
+2. sudo pkill -9 nginx
+
+===================================================
+[Dependency:]
+N/A
