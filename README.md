@@ -1,0 +1,2 @@
+Django-celery-kombu
+===================
